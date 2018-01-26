@@ -31,51 +31,65 @@ workY=100*10^-9;
 
 size=10;
 
-X= rand(3,size);
-Y= rand(3,size);
+X= rand(2,size);
+Y= rand(2,size);
 
 %positions
 X(1,:)= X(1,:)*workX;
 Y(1,:)= Y(1,:)*workY;
 
 %initial direction of each particle
-X(3,:) = X(3,:)*pi;
-Y(3,:) = Y(3,:)*pi;
+angle(1,:) = X(2,:)*2*pi;
 
 %velocity of each particle
-for i =1:length(X)
-    
-    if(X(3,i)<pi/2)
-        X(2,i) = Vth*X(2,i)*cos(X(3,i));
-    else
-        X(2,i) = Vth*X(2,i)*cos(X(3,i)-pi/2)*(-1);
-    end
-    
-    if(Y(3,i)<pi/2)
-        Y(2,i) = Vth*Y(2,i)*cos(Y(3,i));
-    else
-        Y(2,i) = Vth*Y(2,i)*cos(Y(3,i)-pi/2)*(-1);
-    end
-    
-end
+X(2,:) = Vth*cos(angle(1,:));
+Y(2,:) = Vth*sin(angle(1,:));
 
 %set timestep of function
 spacStep = 0.01*workY;
-dt = 1/Vth*spacStep;
-steps = rTime/dt;
+dt = spacStep/Vth;
+steps = 1000;
 
 %variable change
 %setup mapping
+Xpos = X(1,:);
+Ypos = Y(1,:);
 
+Xvel = X(2,:)*dt;
+Yvel = Y(2,:)*dt;
 
+figure(1)
 %main function
-for i = 0:dt:steps
+for i = 1:1:steps
+    %advance position
+    for j =1:1:size
+        if(Xpos(1,j)+Xvel(1,j)>2e-7)%check boundaries
+            Xpos(1,j) = (Xpos(1,j)+Xvel(1,j))-workX;%loop around to 0
+        elseif(Xpos(1,j)+Xvel(1,j)<0)
+            Xpos(1,j) = (Xpos(1,j)+Xvel(1,j))+workX;
+        else
+            Xpos(1,j) = Xpos(1,j)+Xvel(1,j);
+        end
+        
+        if(Ypos(1,j)+Yvel(1,j)>1e-7 || Ypos(1,j)+Yvel(1,j)<0)
+            Yvel(1,j) = Yvel(1,j)*(-1);
+            Ypos(1,j) = Ypos(1,j)+Yvel(1,j);
+        else
+            Ypos(1,j) = Ypos(1,j)+Yvel(1,j);
+        end
+    end
+    
+    prevX(i,:) =Xpos(1,:);
+    prevY(i,:) =Ypos(1,:);
+    
+    %plotting here
+    for j = 1:1:size
+        plot(prevX(:,j),prevY(:,j),'color',[0 0 j/size])
+        xlim([0 workX])
+        ylim([0 workY])
+        drawnow
+        hold on
+    end
     
     
 end
-
-
-figure(1)
-scatter(X(1,:),Y(1,:))
-xlim([0 workX])
-ylim([0 workY])
