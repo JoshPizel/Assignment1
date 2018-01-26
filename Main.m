@@ -22,7 +22,7 @@ Temp = 300; %Given in kelvin
 rTime=1000; %run time in timesteps
 
 %thermal velocity
-Vth = sqrt(C.kb*Temp/mn);
+Vth = sqrt(2*C.kb*Temp/mn);
 
 %establish inital electron positions
 %working area 200nm x 100nm
@@ -38,6 +38,7 @@ Y= rand(2,size);
 X(1,:)= X(1,:)*workX;
 Y(1,:)= Y(1,:)*workY;
 
+colour = rand(1,size);
 %initial direction of each particle
 angle(1,:) = X(2,:)*2*pi;
 
@@ -79,14 +80,18 @@ for i = 1:1:steps
         end
     end
     
+    calcTemp = 1/(2*C.kb)*mn*sqrt((Yvel/dt).^2+(Xvel/dt).^2).^2;
+    averageTemp = sum(calcTemp(1,:))/size;
+    
     prevX(i,:) =Xpos(1,:);
     prevY(i,:) =Ypos(1,:);
     
     %plotting here
     for j = 1:1:size
-        plot(prevX(:,j),prevY(:,j),'color',[0 0 j/size])
+        plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/size])
         xlim([0 workX])
         ylim([0 workY])
+        legend(['Temperature:' num2str(averageTemp)])
         drawnow
         hold on
     end
