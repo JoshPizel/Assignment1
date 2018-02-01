@@ -20,6 +20,7 @@ global X Y
 mn=0.26*C.m_0; %electron mass
 Temp = 300; %Given in kelvin
 rTime=1000; %run time in timesteps
+betCollisions =0.2e-9; %mean time between collisions
 
 %thermal velocity
 Vth = sqrt(2*C.kb*Temp/mn);
@@ -31,6 +32,20 @@ workY=100*10^-9;
 
 size=1000;
 displaySize=10;
+
+%set timestep of function
+spacStep = 0.01*workY;
+dt = spacStep/Vth;
+steps = 1000;
+
+%start probability density function for one dimension
+sigma = sqrt(mn/(2*pi*C.kb*Temp));
+MBdist = makedist('Normal','mu', Vth, 'sigma', sigma);
+valueBin = linspace(Vth-3*sigma, Vth+3*sigma,100);
+
+valueDistro = pdf(MBdist,valueBin);
+
+histogram(valueDistro,100)
 
 X= rand(2,size);
 Y= rand(2,size);
@@ -47,11 +62,6 @@ angle(1,:) = X(2,:)*2*pi;
 X(2,:) = Vth*cos(angle(1,:));
 Y(2,:) = Vth*sin(angle(1,:));
 
-%set timestep of function
-spacStep = 0.01*workY;
-dt = spacStep/Vth;
-steps = 1000;
-
 %variable change
 %setup mapping
 Xpos = X(1,:);
@@ -59,6 +69,8 @@ Ypos = Y(1,:);
 
 Xvel = X(2,:)*dt;
 Yvel = Y(2,:)*dt;
+
+MFP = betCollisions*Vth;
 
 figure(1)
 %main function
