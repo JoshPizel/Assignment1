@@ -90,13 +90,13 @@ for i = 1:1:steps
     scatterCheck = scattered>=Pscat;
     
     for j=1:1:size
-        if(rand<Pscat)
+        if(rand>Pscat)
             vel = random(MBdist);
             
-            angle(1,j) = rand*2*pi;
             
-            Xvel(1,j) = vel*cos(angle(1,j))*dt;
-            Yvel(1,j) = vel*sin(angle(1,j))*dt;
+            
+            Xvel(1,j) = vel*cos(angle(1,j));
+            Yvel(1,i) = velocity*sin(angle(1,j));
         end
     end
     
