@@ -86,7 +86,22 @@ for i = 1:1:steps
     %plotting here
     prevX(i,:) =Xpos(1,:);
     prevY(i,:) =Ypos(1,:);
-    for j = 1:1:displaySize
+%     for j = 1:1:displaySize
+%         plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
+%         
+%         xlim([0 workX])
+%         ylim([0 workY])
+%         legend(['Temperature:' num2str(averageTemp)])
+%         drawnow
+%         hold on
+%     end
+    
+    
+end
+
+
+
+for j = 1:1:displaySize
         plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
         
         xlim([0 workX])
@@ -94,7 +109,4 @@ for i = 1:1:steps
         legend(['Temperature:' num2str(averageTemp)])
         drawnow
         hold on
-    end
-    
-    
 end

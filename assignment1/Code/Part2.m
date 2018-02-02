@@ -37,22 +37,8 @@ X= rand(2,size);
 Y= rand(2,size);
 
 %positions initialize
-X(1,:)= X(1,:)*workX;
-Y(1,:)= Y(1,:)*workY;
-checkXboxleft = X>0.8e-7;
-checkXboxright = X<1.2e-7;
-checkXbox = checkXboxleft & checkXboxright;
-checkYBoxbottom = Y<0.4e-7;
-checkBoxbottom = checkYBoxbottom & checkXbox;
-checkYBoxtop = Y>0.6e-7;
-checkBoxtop = checkYBoxtop & checkXbox;
-
-while(checkBoxtop | checkBoxbottom)
-    
-end
-
-
-
+Xpos(1,:)= X(1,:)*workX;
+Ypos(1,:)= Y(1,:)*workY;
 
 colour = rand(1,displaySize);
 %initial direction of each particle
@@ -83,9 +69,6 @@ dt = spacStep/Vth;
 steps = 1000;
 
 %variable change
-%setup mapping
-Xpos = X(1,:);
-Ypos = Y(1,:);
 
 Xvel(1,:) = Xvel(1,:)*dt;
 Yvel(1,:) = Yvel(1,:)*dt;
@@ -93,13 +76,9 @@ Yvel(1,:) = Yvel(1,:)*dt;
 %percent scatter
 Pscat=1-exp(-(dt/MTBC));
 
+MFPcount = zeros(1,size);
+
 figure(1)
-boxplotX = [0.8e-7 0.8e-7 1.2e-7 1.2e-7];
-boxplotY = [0 0.4e-7 0.4e-7 0];
-plot(boxplotX,boxplotY,'color',[0 0 0]);
-hold on
-boxplotY = [1e-7 0.6e-7 0.6e-7 1e-7];
-plot(boxplotX,boxplotY,'color',[0 0 0]);
 %main function
 for i = 1:1:steps
     
@@ -110,6 +89,7 @@ for i = 1:1:steps
     velocity = random(MBdist,1,size);
     Xvel(scatterCheck) = velocity(scatterCheck).*cos(angle(scatterCheck))*dt;
     Yvel(scatterCheck) = velocity(scatterCheck).*sin(angle(scatterCheck))*dt;
+    MFPcount(~scatterCheck) = MFPcount(~scatterCheck)+spacStep;
     
     %position advance
     %logical indexing
@@ -118,52 +98,8 @@ for i = 1:1:steps
     checkXleft = Xpos +Xvel<0;%left side period
     Xpos(checkXleft) = Xpos(checkXleft) +Xvel(checkXleft)+workX;
     
-    %bottle neck
-    
-    %bottom box
-    %for x reflection
-    checkXboxleft = (Xpos + Xvel)>0.8e-7;
-    checkXboxright = (Xpos + Xvel)<1.2e-7;
-    checkXbox = checkXboxleft & checkXboxright;
-    
-    checkYBoxbottom =(Ypos + Yvel)<0.4e-7;
-    
-    checkBoxBottom = checkYBoxbottom & checkXbox;
-    
-    Xvel(checkBoxBottom) = Xvel(checkBoxBottom).*(-1);
-    
-    %for y reflection
-    checkXboxleft = (Xpos + Xvel)>0.8e-7+spacStep;
-    checkXboxright = (Xpos + Xvel)<1.2e-7-spacStep;
-    checkXbox = checkXboxleft & checkXboxright;
-    checkYabove =Ypos<0.4e-7-spacStep;
-    changeY = checkYabove & checkXbox;
-    
-    Yvel(changeY) = Yvel(changeY).*(-1);
-    
-    %Top box
-    %for x reflection
-    checkXboxleft = (Xpos + Xvel)>0.8e-7;
-    checkXboxright = (Xpos + Xvel)<1.2e-7;
-    checkXbox = checkXboxleft & checkXboxright;
-    
-    checkYBoxbottom =(Ypos + Yvel)>0.6e-7;
-    
-    checkBoxBottom = checkYBoxbottom & checkXbox;
-    
-    Xvel(checkBoxBottom) = Xvel(checkBoxBottom).*(-1);
-    
-    %for y reflection
-    checkXboxleft = (Xpos + Xvel)>0.8e-7+spacStep;
-    checkXboxright = (Xpos + Xvel)<1.2e-7-spacStep;
-    checkXbox = checkXboxleft & checkXboxright;
-    checkYabove =Ypos<0.6e-7+spacStep;
-    changeY = checkYabove & checkXbox;
-    
-    Yvel(changeY) = Yvel(changeY).*(-1);
-    
     %leftover x 
-    leftover = ~(checkXright | checkXleft | checkBoxBottom);
+    leftover = ~(checkXright | checkXleft);
     
     Xpos(leftover) = Xpos(leftover) +Xvel(leftover);
     
@@ -178,9 +114,27 @@ for i = 1:1:steps
     calcTemp = mn*((Ysum)+(Xsum))/(2*C.kb);
     averageTemp = calcTemp/size;
     
+    %MFP calculation
+    MFP = sum(MFPcount)/size;
+    
+    meanVel = sqrt(Ysum + Xsum);
+    MTBCavg = MFP/meanVel;
+    
     %plotting here
     prevX(i,:) =Xpos(1,:);
     prevY(i,:) =Ypos(1,:);
+%     for j = 1:1:displaySize
+%         plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
+%         
+%         xlim([0 workX])
+%         ylim([0 workY])
+%         legend(['Temperature:' num2str(averageTemp)])
+%         hold on
+%         drawnow
+%     end
+    
+end
+
     for j = 1:1:displaySize
         plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
         
@@ -190,6 +144,3 @@ for i = 1:1:steps
         drawnow
         hold on
     end
-    
-    
-end
