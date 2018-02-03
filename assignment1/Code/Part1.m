@@ -57,6 +57,8 @@ steps = 1000;
 Xvel(1,:) = Xvel(1,:)*dt;
 Yvel(1,:) = Yvel(1,:)*dt;
 
+
+averageTemp=zeros(1,size);
 figure(1)
 %main function
 for i = 1:1:steps
@@ -81,7 +83,7 @@ for i = 1:1:steps
     Ysum = sum((Yvel/dt).^2);
     Xsum = sum((Xvel/dt).^2);
     calcTemp = mn*((Ysum)+(Xsum))/(2*C.kb);
-    averageTemp = calcTemp/size;
+    averageTemp(1,i) = calcTemp/size;
     
     %plotting here
     prevX(i,:) =Xpos(1,:);
@@ -104,9 +106,21 @@ end
 for j = 1:1:displaySize
         plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
         
+        title('Particle Trajectories')
         xlim([0 workX])
         ylim([0 workY])
-        legend(['Temperature:' num2str(averageTemp)])
+        legend(['Temperature:' num2str(sum(averageTemp)/size)])
         drawnow
         hold on
 end
+
+figure(2)
+plot(linspace(1,size,size),averageTemp);
+title('Temperature Plot')
+xlabel('Time step')
+ylabel('Temperature')
+
+display('The thermal velocity is')
+display(Vth)
+display('The Mean Free Path is')
+display(Vth*MTBC)

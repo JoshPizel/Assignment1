@@ -2,6 +2,7 @@
 
 clearvars
 clearvars -GLOBAL
+close all
 
 global C
 global X Y
@@ -43,18 +44,8 @@ colour = rand(1,displaySize);
 %initial direction of each particle
 angle(1,:) = X(2,:)*2*pi;
 
-% for normal distribution of velocity
-sigma =sqrt(C.kb*Temp/mn)/4;
-mu = Vth;
-MBdist = makedist('Normal',mu,sigma);
-vel = random(MBdist,1,size);
-Xvel(1,:) = vel(1,:).*cos(angle(1,:));
-Yvel(1,:) = vel(1,:).*sin(angle(1,:));
-
-sumVel = sum(vel)/size;
-
-%Xvel(1,:) = Vth*cos(angle(1,:));
-%Yvel(1,:) = Vth*sin(angle(1,:));
+Xvel(1,:) = Vth*cos(angle(1,:));
+Yvel(1,:) = Vth*sin(angle(1,:));
 
 %hist(velocity)
 %set timestep of function
@@ -63,29 +54,14 @@ dt = spacStep/Vth;
 steps = 1000;
 
 %variable change
-
 Xvel(1,:) = Xvel(1,:)*dt;
 Yvel(1,:) = Yvel(1,:)*dt;
 
-%percent scatter
-Pscat=1-exp(-(dt/MTBC));
 
-MFPcount = zeros(1,size);
-calcTemp = zeros(1,size);
-
+averageTemp=zeros(1,size);
+figure(1)
 %main function
 for i = 1:1:steps
-    
-    %scattering  
-    scattered=rand(1,size);
-    scatterCheck = scattered<=Pscat;
-    angle(scatterCheck) = rand*2*pi;
-    velocity = random(MBdist,1,size);
-    Xvel(scatterCheck) = velocity(scatterCheck).*cos(angle(scatterCheck)).*dt;
-    Yvel(scatterCheck) = velocity(scatterCheck).*sin(angle(scatterCheck)).*dt;
-    MFPcount(~scatterCheck) = MFPcount(~scatterCheck)+spacStep;
-    MFPcount(scatterCheck) = 0;
-    
     %position advance
     %logical indexing
     checkXright = Xpos +Xvel>2e-7;%right side period
@@ -104,13 +80,10 @@ for i = 1:1:steps
     Ypos(1,:) = Ypos(1,:)+Yvel(1,:);
     
     %temperature calculations
-    meanvel = sum(velocity)/size;
-    calcTemp(1,i) = mn*(meanvel)^2/(2*C.kb);
-    
-    %MFP calculation
-    MFP = sum(MFPcount)/size;
-    
-    MTBCavg = MFP/meanvel;
+    Ysum = sum((Yvel/dt).^2);
+    Xsum = sum((Xvel/dt).^2);
+    calcTemp = mn*((Ysum)+(Xsum))/(2*C.kb);
+    averageTemp(1,i) = calcTemp/size;
     
     %plotting here
     prevX(i,:) =Xpos(1,:);
@@ -121,35 +94,32 @@ for i = 1:1:steps
 %         xlim([0 workX])
 %         ylim([0 workY])
 %         legend(['Temperature:' num2str(averageTemp)])
-%         hold on
 %         drawnow
+%         hold on
 %     end
     
-end
-
-figure(3)
-for j = 1:1:displaySize
-    plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
     
-    title('Particle Trajectories: w/ Scattering')
-    xlim([0 workX])
-    ylim([0 workY])
-    drawnow
-    hold on
 end
 
-figure(4)
-plot(linspace(1,size,size),calcTemp);
-title('Temperature plot: Calculated')
+
+
+for j = 1:1:displaySize
+        plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
+        
+        title('Particle Trajectories')
+        xlim([0 workX])
+        ylim([0 workY])
+        legend(['Temperature:' num2str(sum(averageTemp)/size)])
+        drawnow
+        hold on
+end
+
+figure(2)
+plot(linspace(1,size,size),averageTemp);
 xlabel('Time step')
 ylabel('Temperature')
-ylim([270 330])
 
-figure(5)
-title('Velocity Histogram')
-hist(velocity)
-
-display('The Calculated Mean Free Path is')
-display(MFP)
-display('The Calculated Mean Time Between Collisions is')
-display(MTBCavg)
+display('The thermal velocity is')
+display(Vth)
+display('The Mean Free Path is')
+display(Vth*MTBC)

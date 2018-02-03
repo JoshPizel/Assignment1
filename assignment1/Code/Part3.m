@@ -2,7 +2,6 @@
 
 clearvars
 clearvars -GLOBAL
-close all
 
 global C
 global X Y
@@ -100,7 +99,9 @@ Yvel(1,:) = Yvel(1,:)*dt;
 %percent scatter
 Pscat=1-exp(-(dt/MTBC));
 
-figure(1)
+calcTemp = zeros(1,size);
+
+figure(6)
 boxplotX = [0.8e-7 0.8e-7 1.2e-7 1.2e-7];
 boxplotY = [0 0.4e-7 0.4e-7 0];
 plot(boxplotX,boxplotY,'color',[0 0 0]);
@@ -180,23 +181,62 @@ for i = 1:1:steps
     Ypos(1,:) = Ypos(1,:)+Yvel(1,:);
     
     %temperature calculations
-    Ysum = sum((Yvel/dt).^2);
-    Xsum = sum((Xvel/dt).^2);
-    calcTemp = mn*((Ysum)+(Xsum))/(2*C.kb);
-    averageTemp = calcTemp/size;
+    meanvel = sum(velocity)/size;
+    calcTemp(1,i) = mn*(meanvel)^2/(2*C.kb);
     
     %plotting here
     prevX(i,:) =Xpos(1,:);
     prevY(i,:) =Ypos(1,:);
-    for j = 1:1:displaySize
-        plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
-        
-        xlim([0 workX])
-        ylim([0 workY])
-        legend(['Temperature:' num2str(averageTemp)])
-        drawnow
-        hold on
-    end
+%     for j = 1:1:displaySize
+%         plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
+%         
+%         xlim([0 workX])
+%         ylim([0 workY])
+%         legend(['Temperature:' num2str(averageTemp)])
+%         drawnow
+%         hold on
+%     end
     
     
 end
+
+for j = 1:1:displaySize
+    plot(prevX(:,j),prevY(:,j),'color',[colour(1,j) 0 j/displaySize])
+
+    title('Particle Trajectories; w/ walls')
+    xlim([0 workX])
+    ylim([0 workY])
+    drawnow
+    hold on
+end
+
+figure(7)
+n=hist3([Xpos',Ypos'],[15,15]);
+pcolor(n)
+title('Electron Density Map')
+
+%for temperature areas
+
+Xedges = linspace(0,workX,10);
+Yedges = linspace(0,workY,10);
+
+Xbins=discretize(Xpos,Xedges);
+Ybins=discretize(Ypos,Yedges);
+
+binTemp=zeros(10,10);
+for k=1:1:10 %x
+    for L=1:1:10 %y
+        logicX = Xbins==k;
+        logicY = Ybins==L;
+        logic = logicX & logicY;
+        sumX=sum(Xvel(logic))/dt;
+        sumY=sum(Yvel(logic))/dt;
+        meanvel = sqrt((sumX)^2+(sumY)^2);
+        binTemp(k,L) = mn*(meanvel)^2/(2*C.kb);
+    end
+end
+
+figure(8)
+title('Temperature Map')
+surf(binTemp)
+colorbar;
